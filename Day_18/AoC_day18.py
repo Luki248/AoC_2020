@@ -100,9 +100,30 @@ def parse_calc2(calc):
         else:
             return int(calc[0]) * int(calc[2])
 
+    # if there is a term with no parentheses => account for + before *
+    if calc.count("(") == 0 and calc.count(")") == 0:
+        if calc[1] == "+":
+            res = parse_calc2(calc[0:3])
+            return parse_calc2([res] + calc[3:])
+        if calc[-2] == "+":
+            res = parse_calc2(calc[-3:])
+            return parse_calc2(calc[0:-3] + [res])
+        # if there is no "+" in calc
+        if calc.count("+") == 0:
+            calc_string = ""
+            for i in calc:
+                calc_string += str(i)
+            return eval(calc_string)
+        # if there is a "+" in the middle
+        if calc[3] == "+":
+            res = parse_calc2(calc[2:5])
+            return parse_calc2(calc[0:2] + [res] + calc[5:])
+        res = parse_calc2(calc[0:3])
+        return parse_calc2([res] + calc[3:])
+        
     # if there are no parentheses in back of string calc
     if calc[-1] != "(" and calc[-1] != ")":
-        res2 = parse_calc(calc[0:-2])
+        res2 = parse_calc2(calc[0:-2])
         if res2 == None:
             return None
         if calc[-2] == "+":
@@ -121,11 +142,11 @@ def parse_calc2(calc):
                 parentheses_count += 1
             first_parentheses_close -= 1
 
-        res2 = parse_calc(calc[(first_parentheses_close + 2):-1])
+        res2 = parse_calc2(calc[(first_parentheses_close + 2):-1])
         temp = calc
         calc = temp[0:(first_parentheses_close + 1)]
         calc.append(str(res2))
-        return parse_calc(calc)
+        return parse_calc2(calc)
 
 sum = 0
 for calc in calculations:
