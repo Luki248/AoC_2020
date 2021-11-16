@@ -42,17 +42,15 @@ def parse_calc(calc):
         else:
             return int(calc[0]) * int(calc[2])
 
-    # if there are no parentheses in back of string calc
+    # if there are no parentheses in last position of calc
     if calc[-1] != "(" and calc[-1] != ")":
-        res2 = parse_calc(calc[0:-2])
-        if res2 == None:
-            return None
+        res = parse_calc(calc[0:-2])
         if calc[-2] == "+":
-            return int(calc[-1]) + res2
+            return int(calc[-1]) + res
         else:
-            return int(calc[-1]) * res2
+            return int(calc[-1]) * res
 
-    # if parentheses are in last position of string calc
+    # if parentheses are in last position of calc
     if calc[-1] == ")":
         first_parentheses_close = len(calc) - 2
         parentheses_count = 1
@@ -64,10 +62,13 @@ def parse_calc(calc):
             first_parentheses_close -= 1
 
         res2 = parse_calc(calc[(first_parentheses_close + 2):-1])
-        temp = calc
+        temp = calc.copy()
         calc = temp[0:(first_parentheses_close + 1)]
         calc.append(str(res2))
         return parse_calc(calc)
+
+    assert False, "this line should not be reached"
+
 
 sum = 0
 for calc in calculations:
@@ -120,18 +121,32 @@ def parse_calc2(calc):
             return parse_calc2(calc[0:2] + [res] + calc[5:])
         res = parse_calc2(calc[0:3])
         return parse_calc2([res] + calc[3:])
-        
-    # if there are no parentheses in back of string calc
-    if calc[-1] != "(" and calc[-1] != ")":
-        res2 = parse_calc2(calc[0:-2])
-        if res2 == None:
-            return None
-        if calc[-2] == "+":
-            return int(calc[-1]) + res2
-        else:
-            return int(calc[-1]) * res2
 
-    # if parentheses are in last position of string calc
+    # if there are no parentheses in last position of calc, but there are parentheses in calc
+    if calc[-1] != "(" and calc[-1] != ")":
+        last_parentheses_close = len(calc) - 2
+        i = len(calc) - 1
+        while i > 0:
+            if calc[i] == ")":
+                last_parentheses_close = i
+                break
+            i -= 1
+        last_parentheses_open = last_parentheses_close
+        i = last_parentheses_close - 1
+        count = 1
+        while i >= 0:
+            if calc[i] == ")":
+                count += 1
+            if calc[i] == "(":
+                count -= 1
+            if count == 0:
+                last_parentheses_open = i
+                break
+            i -= 1
+        res = parse_calc2(calc[last_parentheses_open+1:last_parentheses_close])
+        return parse_calc2(calc[0:last_parentheses_open] + [res] + calc[last_parentheses_close+1:])
+
+    # if parentheses are in last position of calc
     if calc[-1] == ")":
         first_parentheses_close = len(calc) - 2
         parentheses_count = 1
@@ -143,10 +158,13 @@ def parse_calc2(calc):
             first_parentheses_close -= 1
 
         res2 = parse_calc2(calc[(first_parentheses_close + 2):-1])
-        temp = calc
+        temp = calc.copy()
         calc = temp[0:(first_parentheses_close + 1)]
         calc.append(str(res2))
         return parse_calc2(calc)
+
+    assert False, "this line should not be reached"
+
 
 sum = 0
 for calc in calculations:
