@@ -5,7 +5,8 @@
 input = [line.rstrip('\n') for line in open("input.txt")]
 
 # import rules
-rules = [0]*137
+#rules = [0]*137
+rules = [0]*6
 for line in input:
     if line == "":
         break
@@ -42,131 +43,58 @@ for line in input:
 
     rules[index] = rule
 
+
 # import messages
 messages = []
 i = 0
 for line in input:
-    if i >= 138:
+    #if i >= 138:
+    if i >= 7:
         messages.append(line)
     i += 1
 
-# get all possible messages
-def get_possible_messages(rule_number, m_array):
+
+# test if message match
+def test_message(rule_number, message, mess_index=0):
     rule = rules[rule_number]
-    if rule.count("|") == 1:
-        if len(rule) > 3:
-            temp1 = []
-            i = 0
-            while i < len(m_array):
+    if rule.count("|") == 1:    # split of rules (... | ...)
+        if len(rule) > 3:   # more than one rule in any side (... ... | ... ...)
+            ret1 = test_message(rule[0], message, mess_index)
+            ret2 = test_message(rule[1], message, mess_index + 1)
+            ret3 = test_message(rule[3], message, mess_index)
+            ret4 = test_message(rule[4], message, mess_index + 1)
+            return (ret1 and ret2) or (ret3 and ret4)
 
-                temp1 = []
-                ret1 = get_possible_messages(rule[0], [""])
-                j = 0
-                while j < len(m_array):
-                    for mes in ret1:
-                        temp1.append(m_array[j] + mes)
-                    j += 1
+        else:   # only two rules (... | ...)
+            ret1 = test_message(rule[0], message, mess_index)
+            ret2 = test_message(rule[2], message, mess_index)
+            return ret1 or ret2
 
-                ret1 = get_possible_messages(rule[1], [""])
-                j = 0
-                while j < len(m_array):
-                    for mes in ret1:
-                        temp1.append(m_array[j] + mes)
-                    j += 1
-
-                i += 1
-            
-            temp2 = []
-            i = 0
-            while i < len(m_array):
-                
-                temp2 = []
-                ret1 = get_possible_messages(rule[3], [""])
-                j = 0
-                while j < len(m_array):
-                    for mes in ret1:
-                        temp2.append(m_array[j] + mes)
-                    j += 1
-
-                ret1 = get_possible_messages(rule[4], [""])
-                j = 0
-                while j < len(m_array):
-                    for mes in ret1:
-                        temp2.append(m_array[j] + mes)
-                    j += 1
-
-                i += 1
-
-            temp = temp1
-            for arr in temp2:
-                temp.append(arr)
-            return temp
-
-        else:
-            temp1 = []
-            ret = get_possible_messages(rule[0], [""])
-            i = 0
-            while i < len(m_array):
-                for mes in ret:
-                    temp1.append(m_array[i] + mes)
-                i += 1
-
-            temp2 = []
-            ret = get_possible_messages(rule[2], [""])
-            i = 0
-            while i < len(m_array):
-                for mes in ret:
-                    temp2.append(m_array[i] + mes)
-                i += 1
-
-            temp = temp1
-            for arr in temp2:
-                temp.append(arr)
-            return temp
     else:
-        if len(rule) == 2:
-            temp = []
-            i = 0
-            while i < len(m_array):
-                ret = get_possible_messages(rule[0], [""])
-                for mes in ret:
-                    temp.append(m_array[i] + mes)
-                i += 1
+        if len(rule) == 2:  # two rules (... ...)
+            ret1 = test_message(rule[0], message, mess_index)
+            ret2 = test_message(rule[1], message, mess_index + 1)
+            return ret1 and ret2
             
-            i = 0
-            while i < len(m_array):
-                ret = get_possible_messages(rule[1], [""])
-                for mes in ret:
-                    temp.append(m_array[i] + mes)
-                i += 1
-            return temp
+        elif len(rule) == 3:    # tree rules (... ... ...)
+            ret1 = test_message(rule[0], message, mess_index)
+            ret2 = test_message(rule[1], message, mess_index + 1)
+            ret3 = test_message(rule[3], message, mess_index + 2)
+            return ret1 and ret2 and ret3
 
-        else:
-            if rule[0] == "a" or rule[0] == "b":
-                i = 0
-                while i < len(m_array):
-                    m_array[i] += rule[0]
-                    i += 1
-                return m_array
-            else:
-                temp = []
-                i = 0
-                while i < len(m_array):
-                    ret = get_possible_messages(rule[0], [""])
-                    for mes in ret:
-                        temp.append(m_array[i] + mes)
-                    i += 1
-                return temp
+        else:   # one rule ("a") or ("b") or (...)
+            if rule[0] == "a" or rule[0] == "b":    # char "a" or "b"
+                return rule[0] == message[mess_index]
+            else:   # one rule (...)
+                return test_message(rule[0], message, mess_index)
 
 
 # Puzzle 1
-possible_messages = get_possible_messages(0, [""])
-correct_messages = 0
+count_correct_messages = 0
 for mes in messages:
-    pass
-    #if match(mes):
-    #    correct_messages += 1
-print("First Puzzle:", correct_messages)
+    if test_message(0, mes):
+        count_correct_messages += 1
+print("First Puzzle:", count_correct_messages)
 
 
 # Puzzle 2
